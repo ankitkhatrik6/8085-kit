@@ -300,7 +300,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="bg-[#0a0a0a] border-t border-[#2a2a2a] px-6 py-3 text-center select-none">
         <p className="text-[10px] font-mono tracking-widest uppercase text-neutral-500">
-          Made by <span className="text-red-400 font-bold">Ankit Khatri KC</span>
+          Made by <a href="https://ankitkhatri.me/" target="_blank" rel="noopener noreferrer" className="text-red-400 font-bold hover:underline">Ankit Khatri KC</a>
         </p>
       </footer>
     </div>
