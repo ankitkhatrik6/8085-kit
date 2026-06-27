@@ -39,7 +39,7 @@ You need **Node.js v18+** installed.
 
 ```bash
 # clone the repo
-git clone https://github.com/<your-username>/8085-trainer-kit.git
+git clone https://github.com/ankitkhatrik6/8085-kit.git
 cd 8085-trainer-kit
 
 # install dependencies
