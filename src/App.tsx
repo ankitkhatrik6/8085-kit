@@ -64,11 +64,6 @@ export default function App() {
     forceUpdate();
   };
 
-  const handleGlobalReset = () => {
-    emulator.reset();
-    setHighlightedAddresses(new Set());
-    forceUpdate();
-  };
 
   return (
     <div className="min-h-screen bg-[#121212] text-neutral-100 flex flex-col font-sans select-none antialiased">
@@ -126,14 +121,7 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Quick actions */}
-        <button
-          onClick={handleGlobalReset}
-          className="bg-red-950/20 hover:bg-red-900/40 text-red-400 border border-red-700/40 text-[10px] font-bold font-mono tracking-widest uppercase px-3 py-1.5 transition-colors flex items-center gap-1.5 cursor-pointer"
-        >
-          <RotateCcw className="w-3 h-3" />
-          Reset Emulator
-        </button>
+
       </header>
 
       {/* 2. DYNAMIC WORKSPACE BODY CONTAINER */}

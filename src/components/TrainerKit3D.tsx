@@ -241,6 +241,37 @@ function DB9Connector({ className = "" }: { className?: string }) {
   );
 }
 
+// Helper to get or create a stable AudioContext
+const getAudioCtx = () => {
+  if (typeof window === 'undefined') return null;
+  let ctx = (window as any)._trainerAudioCtx;
+  if (!ctx) {
+    try {
+      ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      (window as any)._trainerAudioCtx = ctx;
+    } catch (e) {
+      return null;
+    }
+  }
+  return ctx;
+};
+
+// Unlock audio context natively on first user interaction to bypass strict browser policies
+if (typeof window !== 'undefined' && !(window as any)._audioUnlocked) {
+  (window as any)._audioUnlocked = true;
+  const unlockAudio = () => {
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    document.removeEventListener('pointerdown', unlockAudio);
+    document.removeEventListener('keydown', unlockAudio);
+  };
+  document.addEventListener('pointerdown', unlockAudio, { once: true, capture: true });
+  document.addEventListener('keydown', unlockAudio, { once: true, capture: true });
+}
+
+// Remove the old module-level globalAudioCtx which was being reset by Vite HMR
 export default function TrainerKit3D({
   emulator,
   onStateChange,
@@ -391,17 +422,33 @@ export default function TrainerKit3D({
 
     // Audio click feedback
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(key === "RESET" ? 180 : 750, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
+      const audioCtx = getAudioCtx();
+      if (audioCtx) {
+        const play = () => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(key === "RESET" ? 180 : 750, audioCtx.currentTime);
+          
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          
+          const t = audioCtx.currentTime;
+          // Set volume instantly, then fade out linearly to avoid math errors in exponential ramps
+          gain.gain.setValueAtTime(0.06, t);
+          gain.gain.linearRampToValueAtTime(0, t + 0.1);
+          
+          osc.start(t);
+          osc.stop(t + 0.1);
+        };
+
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().then(play).catch(() => {});
+        } else {
+          play();
+        }
+      }
     } catch (e) {}
 
     // RESET Button
@@ -756,12 +803,6 @@ export default function TrainerKit3D({
           <Screw x="bottom-2.5 right-2.5" />
 
           {/* Silkscreen text and guidelines */}
-          <div className="absolute top-3 left-12 text-[#2ecc71]/40 font-mono text-[7px] select-none uppercase tracking-widest">
-            ST8085-01 MICROPROCESSOR LABtwin BOARD
-          </div>
-          <div className="absolute bottom-3 left-12 text-[#2ecc71]/30 font-mono text-[6.5px] select-none">
-            MICROPROCESSOR TRAINER BOARD • SERIAL No: 85-ST420-B
-          </div>
 
           {/* ----------------- COLUMN 1: LEFT AREA (IC COMPONENTS) ----------------- */}
 
@@ -847,11 +888,6 @@ export default function TrainerKit3D({
           {/* ----------------- COLUMN 3: RIGHT / DISPLAY & CONTROL ----------------- */}
 
           {/* Branding Title */}
-          <div className="absolute left-[400px] top-[30px] select-none">
-            <span className="text-[#2ecc71]/60 font-mono text-[7px] block uppercase tracking-widest leading-none">INTEL 8085 EMULATOR</span>
-            <span className="text-white font-extrabold font-display text-[19px] tracking-wider block uppercase mt-1 leading-none">ST8085-01 KIT</span>
-            <span className="text-[#2ecc71] font-mono text-[8px] tracking-tight block uppercase mt-1.5">INTEL 8085A TRAINER BOARD</span>
-          </div>
 
           {/* Status LEDs: RUN & HALT */}
           <div className="absolute left-[645px] top-[36px] flex gap-4 bg-black/40 border border-[#0d4d28] px-3 py-1.5 rounded-lg">
@@ -1123,18 +1159,9 @@ export default function TrainerKit3D({
               <path d="M12 2L2 22h20L12 2zm0 4l6 12H6l6-12z"/>
             </svg>
             <div>
-              <span className="text-white font-bold font-display text-[11px] tracking-widest block leading-none">8085-KIT</span>
-              <span className="text-[#2ecc71] font-mono text-[6px] tracking-tight block uppercase mt-0.5">8085 MICROPROCESSOR KIT</span>
+              <span className="text-white font-bold font-display text-[11px] tracking-widest block leading-none uppercase">Ankit Khatri KC</span>
+              <span className="text-[#2ecc71] font-mono text-[6px] tracking-tight block uppercase mt-0.5">DEVELOPER</span>
             </div>
-          </div>
-
-          {/* Board markings along the bottom edge */}
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-12 font-mono text-[5.5px] text-[#2ecc71]/40 tracking-wider">
-            <span>ST8085-01</span>
-            <span>ST8085-02</span>
-            <span>ST8085-03</span>
-            <span>ST8085-05</span>
-            <span>ST8085-KIT</span>
           </div>
 
         </div>
