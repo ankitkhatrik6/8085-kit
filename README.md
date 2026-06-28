@@ -1,4 +1,4 @@
-# MP 8085 Trainer Kit Simulator
+# 8085 Trainer Kit Simulator
 
 A browser-based replica of the Intel 8085 Microprocessor Trainer Kit — the same kind you'd find in a college microprocessor lab, but running entirely in your browser.
 
