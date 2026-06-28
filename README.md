@@ -1,6 +1,6 @@
 # 8085 Trainer Kit Simulator
 
-A browser-based replica of the Intel 8085 Microprocessor Trainer Kit — the same kind you'd find in a college microprocessor lab, but running entirely in your browser.
+A browser-based replica of the Intel 8085 Microprocessor Trainer Kit , the same kind you'd find in a college microprocessor lab, but running entirely in your browser.
 
 ![React](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)
